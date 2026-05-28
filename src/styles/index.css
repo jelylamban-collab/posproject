@@ -1,0 +1,26 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+.thermal-receipt {
+  width: 280px;
+  min-height: 520px;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .thermal-receipt,
+  .thermal-receipt * {
+    visibility: visible;
+  }
+
+  .thermal-receipt {
+    position: fixed;
+    inset: 0 auto auto 0;
+    box-shadow: none !important;
+    width: 280px;
+  }
+}
