@@ -71,48 +71,27 @@ export default defineConfig([
 
 ## Deployment
 
-This project can be deployed to Vercel or Netlify. The app builds to the `dist` folder using `npm run build`.
-
-Quick steps for both providers:
+This project is set up for Vercel deployment. The app builds to the `dist` folder using `npm run build`.
 
 ### Vercel
 
 1. Push this repo to GitHub.
-2. In the Vercel dashboard, click "New Project" → import from GitHub.
-3. Set Framework preset to "Vite" (or let Vercel auto-detect). Build command: `npm run build`. Output directory: `dist`.
-4. Deploy. Vercel will build and publish automatically on each push.
+2. In the Vercel dashboard, click "New Project" and import the GitHub repo.
+3. Set the Framework preset to "Vite" if Vercel does not auto-detect it.
+4. Use these settings if prompted:
 
-### Netlify
+- Build command: `npm run build`
+- Output directory: `dist`
 
-1. Push this repo to GitHub.
-2. In Netlify, click "New site from Git" → choose GitHub repo.
-3. Build command: `npm run build`. Publish directory: `dist`.
-4. Connect and deploy. Netlify will run builds on each push.
+5. Deploy. Vercel will publish automatically on each push to the connected branch.
 
 Notes
 
-- Both platforms detect a Vite project automatically. The repo includes `netlify.toml` and `vercel.json` to help with configuration.
-- If you use environment variables, add them in the provider's project settings.
+- The repo includes `vercel.json` for SPA routing.
+- If you use environment variables, add them in the Vercel project settings.
 - To preview the production build locally:
 
 ```bash
 npm run build
 npm run preview
 ```
-
-### Automatic deploy via GitHub Actions → Netlify
-
-This repo includes a workflow at `.github/workflows/deploy-netlify.yml` that will build the app and deploy the `dist` folder to Netlify whenever you push to `main` or `master`.
-
-To enable automatic deploys:
-
-1. Create a site in Netlify (or use an existing site) and get the **Site ID**.
-2. Create a Personal Access Token in Netlify (User Settings → Applications → Personal access tokens) — copy the token.
-3. In your GitHub repository, go to `Settings → Secrets → Actions` and add two secrets:
-
-- `NETLIFY_AUTH_TOKEN` = the Netlify personal access token
-- `NETLIFY_SITE_ID` = the Netlify site id
-
-4. Push to `main` (or `master`) — GitHub Actions will run and deploy automatically.
-
-If you want, I can guide you step-by-step to create the Netlify site and add the secrets.
