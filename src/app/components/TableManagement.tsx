@@ -8,12 +8,23 @@ interface TableManagementProps {
   currentOrder: POSOrder | null;
 }
 
+interface WaitlistEntry {
+  id: string;
+  customer_name?: string;
+  queue_number?: string;
+  guests?: number;
+  waiting_time?: string;
+  status?: string;
+  assigned_table?: number;
+  order_id?: string;
+}
+
 export function TableManagement({ onNavigate }: TableManagementProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [tables, setTables] = useState<DbRecord[]>(() => db.all('tables'));
-  const [waitlist, setWaitlist] = useState<DbRecord[]>(() => db.all('table_waitlist'));
-  const [viewingGuest, setViewingGuest] = useState<DbRecord | null>(null);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>(() => db.all('table_waitlist') as WaitlistEntry[]);
+  const [viewingGuest, setViewingGuest] = useState<WaitlistEntry | null>(null);
 
   const availableTables = tables.filter((table) => table.status === 'available');
   const queueIsOpen = availableTables.length === 0;
@@ -51,7 +62,7 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
       current_waitlist_id: nextGuest.id,
       queue_customer_name: nextGuest.customer_name,
     });
-    db.update('table_waitlist', nextGuest.id, {
+    db.update('table_waitlist', String(nextGuest.id), {
       status: 'Assigned',
       assigned_table: table.number,
       assigned_at: new Date().toISOString(),
@@ -59,13 +70,13 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
     refreshRecords();
   };
 
-  const removeWaitlistEntry = (guest: DbRecord) => {
+  const removeWaitlistEntry = (guest: WaitlistEntry) => {
     // permanently remove the waitlist entry so it no longer appears
     db.delete('table_waitlist', guest.id);
     refreshRecords();
   };
 
-  const viewWaitlistEntry = (guest: DbRecord) => {
+  const viewWaitlistEntry = (guest: WaitlistEntry) => {
     setViewingGuest(guest);
   };
 
@@ -180,7 +191,7 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
               <p className="text-sm text-muted-foreground text-center py-6">No queued customers.</p>
             ) : (
               waitlist.map((guest) => (
-                <div key={guest.id} className="border border-border rounded-lg p-3">
+                <div key={String(guest.id)} className="border border-border rounded-lg p-3">
                   <div className="flex justify-between gap-2">
                     <div>
                       <p className="text-sm font-medium">{String(guest.customer_name)}</p>
@@ -195,7 +206,7 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
                       {String(guest.status)}
                     </span>
                   </div>
-                  {Boolean(guest.assigned_table) && (
+                  {guest.assigned_table != null && (
                     <p className="text-xs text-muted-foreground mt-2">Assigned Table #{String(guest.assigned_table)}</p>
                   )}
                   <div className="mt-3 flex gap-2">
@@ -218,12 +229,13 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
                   <div><strong>Queue #:</strong> {String(viewingGuest.queue_number ?? viewingGuest.id)}</div>
                   <div><strong>Status:</strong> {String(viewingGuest.status)}</div>
                   <div><strong>Waiting Time:</strong> {String(viewingGuest.waiting_time ?? '0 min')}</div>
-                  {Boolean(viewingGuest.assigned_table) && <div><strong>Assigned Table:</strong> #{String(viewingGuest.assigned_table)}</div>}
-                  {viewingGuest.order_id && (
+                  {viewingGuest.assigned_table != null && <div><strong>Assigned Table:</strong> #{String(viewingGuest.assigned_table)}</div>}
+                  {viewingGuest.order_id != null && (
                     <div className="border-t pt-3">
                       <div className="text-sm font-medium mb-2">Linked Order</div>
                       {(() => {
-                        const order = db.all('orders').find((o) => o.id === viewingGuest.order_id);
+                        const orderId = viewingGuest.order_id ? String(viewingGuest.order_id) : '';
+                        const order = db.all('orders').find((o) => o.id === orderId);
                         if (!order) return <div className="text-xs text-muted-foreground">Order record not found.</div>;
                         return (
                           <div className="text-xs space-y-2">
@@ -246,7 +258,7 @@ export function TableManagement({ onNavigate }: TableManagementProps) {
                   )}
                 </div>
                 <div className="p-4 border-t flex gap-3">
-                  <button onClick={() => { if (viewingGuest) removeWaitlistEntry(viewingGuest); setViewingGuest(null); }} className="flex-1 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg">Remove</button>
+                  <button onClick={() => { if (viewingGuest) removeWaitlistEntry(viewingGuest as DbRecord); setViewingGuest(null); }} className="flex-1 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg">Remove</button>
                   <button onClick={() => setViewingGuest(null)} className="flex-1 px-4 py-2 border border-border rounded-lg">Close</button>
                 </div>
               </div>
